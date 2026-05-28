@@ -21,8 +21,7 @@ import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.disaregistrationstubs.models.{EnrolmentSubmissionRequest, EnrolmentSubmissionResponse}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-
-import java.util.UUID
+import scala.util.Random
 import javax.inject.Inject
 
 class EtmpController @Inject() (
@@ -40,7 +39,8 @@ class EtmpController @Inject() (
 
           case _ =>
             logger.info(s"Submission successful response triggered for groupId: [${req.groupId}]")
-            Ok(Json.toJson(EnrolmentSubmissionResponse(UUID.randomUUID().toString)))
+            val formBundleId = Random.between(100000000000L, 999999999999L).toString
+            Ok(Json.toJson(EnrolmentSubmissionResponse(formBundleId)))
         }
 
       case JsError(errors) =>

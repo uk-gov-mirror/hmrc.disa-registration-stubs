@@ -18,7 +18,7 @@ package uk.gov.hmrc.disaregistrationstubs.models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class EnrolmentSubmissionResponse(subscriptionId: String)
+case class EnrolmentSubmissionResponse(formBundleId: String)
 
 object EnrolmentSubmissionResponse {
   implicit val format: OFormat[EnrolmentSubmissionResponse] = Json.format[EnrolmentSubmissionResponse]

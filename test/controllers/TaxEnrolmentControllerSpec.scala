@@ -70,7 +70,7 @@ class TaxEnrolmentControllerSpec extends BaseUnitSpec {
     ).thenReturn(Future.failed(new RuntimeException("callback failed")))
 
   private def partialFailureMessage(state: String): String =
-    s"Subscription with subscriptionId $subscriptionId partially processed. " +
+    s"Subscription with formBundleId $subscriptionId partially processed. " +
       s"This could indicate an error but will depend on your regime. " +
       s"Check the state [$state] Note This subscription can still be retried by making a call to " +
       s"PUT /tax-enrolments/subscription/$subscriptionId/issuer"

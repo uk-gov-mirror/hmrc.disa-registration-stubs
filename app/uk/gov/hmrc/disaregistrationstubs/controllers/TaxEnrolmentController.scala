@@ -51,7 +51,7 @@ class TaxEnrolmentController @Inject() (
               .fold(
                 errors => {
                   logger.warn(
-                    s"Parsing Tax Enrolments subscriber request failed for subscriptionId: [$subscriptionId], errors: ${JsError
+                    s"Parsing Tax Enrolments subscriber request failed for formBundleId: [$subscriptionId], errors: ${JsError
                         .toJson(errors)}"
                   )
                   Future.successful(BadRequest("Invalid request payload"))
@@ -60,11 +60,11 @@ class TaxEnrolmentController @Inject() (
               )
 
           case None =>
-            logger.warn(s"No credentials returned from authorise call for subscriptionId: [$subscriptionId]")
+            logger.warn(s"No credentials returned from authorise call for formBundleId: [$subscriptionId]")
             Future.successful(Unauthorized)
         }
         .recover { case e: AuthorisationException =>
-          logger.warn(s"Authorise call failed for Tax Enrolments subscriptionId: [$subscriptionId]", e)
+          logger.warn(s"Authorise call failed for Tax Enrolments formBundleId: [$subscriptionId]", e)
           Unauthorized
         }
     }
@@ -77,13 +77,13 @@ class TaxEnrolmentController @Inject() (
     credId match {
       case BadRequestCredId =>
         logger.info(
-          s"Tax Enrolments bad request response triggered for subscriptionId: [$subscriptionId], etmpId: [${payload.etmpId}]"
+          s"Tax Enrolments bad request response triggered for formBundleId: [$subscriptionId], etmpId: [${payload.etmpId}]"
         )
         Future.successful(BadRequest("Bad request from Tax Enrolments stub"))
 
       case InternalServerErrorCredId =>
         logger.info(
-          s"Tax Enrolments internal server error response triggered for subscriptionId: [$subscriptionId], etmpId: [${payload.etmpId}]"
+          s"Tax Enrolments internal server error response triggered for formBundleId: [$subscriptionId], etmpId: [${payload.etmpId}]"
         )
         Future.successful(InternalServerError("Internal server error from Tax Enrolments stub"))
 
@@ -117,7 +117,7 @@ class TaxEnrolmentController @Inject() (
 
       case _ =>
         logger.info(
-          s"No specific Tax Enrolments credId scenario matched for credId: [$credId]. Defaulting to success for subscriptionId: [$subscriptionId]"
+          s"No specific Tax Enrolments credId scenario matched for credId: [$credId]. Defaulting to success for formBundleId: [$subscriptionId]"
         )
         callCallback(subscriptionId, payload, callbackPayload(subscriptionId, SucceededState))
         Future.successful(NoContent)
@@ -129,7 +129,7 @@ class TaxEnrolmentController @Inject() (
     callbackPayload: TaxEnrolmentCallbackRequest
   )(implicit hc: HeaderCarrier): Unit = {
     logger.info(
-      s"Calling Tax Enrolments callback URL [${subscriberRequest.callback}] for subscriptionId: [$subscriptionId], " +
+      s"Calling Tax Enrolments callback URL [${subscriberRequest.callback}] for formBundleId: [$subscriptionId], " +
         s"etmpId: [${subscriberRequest.etmpId}], state: [${callbackPayload.state}]"
     )
 
@@ -140,7 +140,7 @@ class TaxEnrolmentController @Inject() (
       )
       .recover { case e =>
         logger.error(
-          s"Tax Enrolments callback call failed for subscriptionId: [$subscriptionId] and callbackUrl: [${subscriberRequest.callback}]",
+          s"Tax Enrolments callback call failed for formBundleId: [$subscriptionId] and callbackUrl: [${subscriberRequest.callback}]",
           e
         )
       }
@@ -165,7 +165,7 @@ class TaxEnrolmentController @Inject() (
     )
 
   private def partialFailureMessage(subscriptionId: String, state: String): String =
-    s"Subscription with subscriptionId $subscriptionId partially processed. " +
+    s"Subscription with formBundleId $subscriptionId partially processed. " +
       s"This could indicate an error but will depend on your regime. " +
       s"Check the state [$state] Note This subscription can still be retried by making a call to " +
       s"PUT /tax-enrolments/subscription/$subscriptionId/issuer"
