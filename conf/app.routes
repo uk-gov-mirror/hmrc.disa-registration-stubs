@@ -6,6 +6,13 @@ POST    /etmp/enrolment/submission                                  uk.gov.hmrc.
 
 POST    /address-lookup/lookup                                      uk.gov.hmrc.disaregistrationstubs.controllers.AddressLookupController.lookup()
 
+
+## Email verification
+
+POST    /email-verification/v2/send-code                            uk.gov.hmrc.disaregistrationstubs.controllers.EmailVerificationController.sendCode()
+
+POST    /email-verification/v2/verify-code                          uk.gov.hmrc.disaregistrationstubs.controllers.EmailVerificationController.verifyCode()
+
 ## GRS/BV Stubs
 
 POST    /incorporated-entity-identification/api/limited-company-journey  uk.gov.hmrc.disaregistrationstubs.controllers.GrsController.createLimitedCompanyJourney()
