@@ -117,17 +117,17 @@ Simulates the GRS/BV journey data retrieval endpoint.
 
 This can be triggered directly with calls, or by using the create journey endpoint with one of the following retrieval journey IDs as the Auth `credId`.
 
-| Scenario                   | `journeyId` or `credId`             | Response           | Description                                                                 |
-|----------------------------|-------------------------------------|--------------------|-----------------------------------------------------------------------------|
-| Success                    | `grs-retrieval-success`             | `200 OK`           | Typical success case with user going through GRS and BV                     |
-| Success (CT Enrolled)      | `grs-retrieval-success-ct-enrolled` | `200 OK`           | Success case for users with IR-CT enrolment, fast-tracked through BV        |
-| Business Verification Fail | `grs-retrieval-bv-fail`             | `200 OK`           | Failure in BV journey resulting in lockout                                  |
-| Registration Failed        | `grs-retrieval-registration-failed` | `200 OK`           | Successful verification but failure to register user with ETMP              |
-| Absent UTR                 | `grs-retrieval-absent-utr`          | `200 OK`           | Edge case that can occur with Registered Societies                          |
-| Not Found                  | `grs-retrieval-data-not-found`      | `404 Not Found`    | No journey data found for the given ID                                      |
-| Unauthorized (stubbed)     | `grs-retrieval-unauthorised`        | `401 Unauthorized` | Explicit stubbed unauthorized response                                      |
-| Unauthorized (real)        | auth fails                          | `401 Unauthorized` | Real authorization failure (e.g. missing or invalid credentials)            |
-| Success (default)          | any other value                     | `200 OK`           | Defaults to typical success response       
+| Scenario                   | `journeyId` or `credId`             | Response           | Description                                                          |
+|----------------------------|-------------------------------------|--------------------|----------------------------------------------------------------------|
+| Success                    | `grs-retrieval-success`             | `200 OK`           | Typical success case with user going through GRS and BV              |
+| Success (CT Enrolled)      | `grs-retrieval-success-ct-enrolled` | `200 OK`           | Success case for users with IR-CT enrolment, fast-tracked through BV |
+| Business Verification Fail | `grs-retrieval-bv-fail`             | `200 OK`           | Failure in BV journey resulting in lockout                           |
+| Registration Failed        | `grs-retrieval-registration-failed` | `200 OK`           | Successful verification but failure to register user with ETMP       |
+| Absent UTR                 | `grs-retrieval-absent-utr`          | `200 OK`           | Edge case that can occur with Registered Societies                   |
+| Not Found                  | `grs-retrieval-data-not-found`      | `404 Not Found`    | No journey data found for the given ID                               |
+| Unauthorized (stubbed)     | `grs-retrieval-unauthorised`        | `401 Unauthorized` | Explicit stubbed unauthorized response                               |
+| Unauthorized (real)        | auth fails                          | `401 Unauthorized` | Real authorization failure (e.g. missing or invalid credentials)     |
+| Success (default)          | any other value                     | `200 OK`           | Defaults to typical success response                                 |
 
 ### POST /address-lookup/lookup
 
@@ -152,6 +152,27 @@ The response is driven by the `postcode` submitted in the request. The optional 
   "filter": "10"
 }
 ```
+### GET     /tax-enrolments/groups/:groupId/subscriptions
+
+Simulates the tax-enrolment, retrieve subscription by groupId, endpoint.
+
+The response is driven by the `groupId` returned from Auth.
+
+| Scenario                  | `groupId`              | Response         | Callback state |
+|---------------------------|------------------------|------------------|----------------|
+| Success                   | any other group Id     | `200 with JSON`  | `SUCCEEDED`    |
+| Success (status: pending) | `groupId-state-pending` | `200 with JSON`  | `PENDING`      |
+| Success (status: offline) | `groupId-state-offline` | `200 with JSON`  | `OFFLINE`      |
+| Success (status: error)   | `groupId-state-error`  | `200 with JSON`  | `ERROR`        |
+| Success (not found)       | `groupId-notfound`     | `200 Empty JSON` | No state       |
+| Internal Server Error     | null                   | `500`            | No state       |
+
+Available identifier keys and values:
+
+| keys   | `values` |
+|--------|----------|
+| ZREF   | `Z0001`  |
+
 ### POST /email-verification/v2/send-code
 
 Simulates sending an email verification code.

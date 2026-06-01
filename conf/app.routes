@@ -17,3 +17,5 @@ POST    /email-verification/v2/verify-code                          uk.gov.hmrc.
 
 POST    /incorporated-entity-identification/api/limited-company-journey  uk.gov.hmrc.disaregistrationstubs.controllers.GrsController.createLimitedCompanyJourney()
 GET     /incorporated-entity-identification/api/journey/:journeyId       uk.gov.hmrc.disaregistrationstubs.controllers.GrsController.retrieveJourneyData(journeyId: String)
+
+GET     /tax-enrolments/groups/:groupId/subscriptions                    uk.gov.hmrc.disaregistrationstubs.controllers.TaxEnrolmentController.checkGroupIdSubscription(groupId: String)
