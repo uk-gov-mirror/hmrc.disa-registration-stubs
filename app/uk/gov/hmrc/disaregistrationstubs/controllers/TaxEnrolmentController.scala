@@ -78,6 +78,9 @@ class TaxEnrolmentController @Inject() (
 
           case "groupId-state-pending" => Future.successful(Ok(Json.toJson(makeResponse(groupIdPending, PendingState))))
 
+          case "groupId-state-succeeded" =>
+            Future.successful(Ok(Json.toJson(makeResponse(groupIdSucceeded, SucceededState))))
+
           case "groupId-state-offline" => Future.successful(Ok(Json.toJson(makeResponse(groupIdOffline, OfflineState))))
 
           case "groupId-state-error" => Future.successful(Ok(Json.toJson(makeResponse(groupIdError, ErrorState))))
@@ -86,7 +89,7 @@ class TaxEnrolmentController @Inject() (
 
           case null | " " => Future.successful(InternalServerError)
 
-          case aGroupId => Future.successful(Ok(Json.toJson(makeResponse(aGroupId, SucceededState))))
+          case aGroupId => Future.successful(Ok(Json.toJson(Seq.empty[String])))
 
         }
       }

@@ -158,14 +158,14 @@ Simulates the tax-enrolment, retrieve subscription by groupId, endpoint.
 
 The response is driven by the `groupId` returned from Auth.
 
-| Scenario                  | `groupId`              | Response         | Callback state |
-|---------------------------|------------------------|------------------|----------------|
-| Success                   | any other group Id     | `200 with JSON`  | `SUCCEEDED`    |
-| Success (status: pending) | `groupId-state-pending` | `200 with JSON`  | `PENDING`      |
-| Success (status: offline) | `groupId-state-offline` | `200 with JSON`  | `OFFLINE`      |
-| Success (status: error)   | `groupId-state-error`  | `200 with JSON`  | `ERROR`        |
-| Success (not found)       | `groupId-notfound`     | `200 Empty JSON` | No state       |
-| Internal Server Error     | null                   | `500`            | No state       |
+| Scenario                    | `groupId`               | Response         | Callback state |
+|-----------------------------|-------------------------|------------------|----------------|
+| Success (status: succeeded) | `groupId-state-success` | `200 with JSON`  | `SUCCEEDED`    |
+| Success (status: pending)   | `groupId-state-pending` | `200 with JSON`  | `PENDING`      |
+| Success (status: offline)   | `groupId-state-offline` | `200 with JSON`  | `OFFLINE`      |
+| Success (status: error)     | `groupId-state-error`   | `200 with JSON`  | `ERROR`        |
+| Success (not found)         | `groupId-notfound`      | `200 Empty JSON` | No state       |
+| Internal Server Error       | null                    | `500`            | No state       |
 
 Available identifier keys and values:
 
