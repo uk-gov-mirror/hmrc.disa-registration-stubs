@@ -89,10 +89,24 @@ The `credId` used in the generation of the bearer token is used to select the sc
 
 For callback scenarios, the subscriber endpoint returns `204 No Content` independently of the callback result. The callback is triggered separately using the `callback` URL from the request payload.
 
-### POST /incorporated-entity-identification/api/limited-company-journey
-Simulates the GRS create limited company journey endpoint.
+### GRS create journey endpoints
 
-The response is driven by the `credId` returned from Auth.
+Simulates the GRS create journey endpoints for both Incorporated Entity Identification and
+Partnership Identification:
+
+| Company/partnership type              | Endpoint                                                                    | Notes                                                 |
+|----------------------------------------|------------------------------------------------------------------------------|--------------------------------------------------------|
+| Limited Company                        | `POST /incorporated-entity-identification/api/limited-company-journey`       | Also used for European Institution with a UK Base      |
+| Registered Society                     | `POST /incorporated-entity-identification/api/registered-society-journey`    | Also used for Incorporated/Registered Friendly Society  |
+| General Partnership                    | `POST /partnership-identification/api/general-partnership-journey`           |                                                          |
+| Scottish Partnership                   | `POST /partnership-identification/api/scottish-partnership-journey`          |                                                          |
+| Scottish Limited Partnership            | `POST /partnership-identification/api/scottish-limited-partnership-journey`  |                                                          |
+| Limited Partnership                    | `POST /partnership-identification/api/limited-partnership-journey`           |                                                          |
+| Limited Liability Partnership          | `POST /partnership-identification/api/limited-liability-partnership-journey` |                                                          |
+
+All seven endpoints share identical stubbed behaviour - the endpoint alone determines which
+company/partnership type the journey is created for, and the response is driven by the `credId`
+returned from Auth:
 
 | Scenario                | `credId`                            | Response                      |
 |-------------------------|-------------------------------------|-------------------------------|
@@ -110,10 +124,12 @@ For successful responses, the body will be:
   "journeyStartUrl": "/obligations/enrolment/isa/incorporated-identity-callback?journeyId=<credId>"
 }
 ```
-Where `<credId>` is reused as the journeyId for subsequent calls to the journey data retrieval endpoint (see below).
+Where `<credId>` is reused as the journeyId for subsequent calls to the journey data retrieval endpoints (see below).
 
-### GET /journey/:journeyId
-Simulates the GRS/BV journey data retrieval endpoint.
+### GET /incorporated-entity-identification/api/journey/:journeyId
+Simulates the GRS/BV journey data retrieval endpoint for Limited Company and Registered Society
+journeys (and, by extension, European Institution with a UK Base and Incorporated/Registered
+Friendly Society, which reuse these journeys).
 
 This can be triggered directly with calls, or by using the create journey endpoint with one of the following retrieval journey IDs as the Auth `credId`.
 
@@ -128,6 +144,26 @@ This can be triggered directly with calls, or by using the create journey endpoi
 | Unauthorized (stubbed)     | `grs-retrieval-unauthorised`        | `401 Unauthorized` | Explicit stubbed unauthorized response                               |
 | Unauthorized (real)        | auth fails                          | `401 Unauthorized` | Real authorization failure (e.g. missing or invalid credentials)     |
 | Success (default)          | any other value                     | `200 OK`           | Defaults to typical success response                                 |
+
+### GET /partnership-identification/api/journey/:journeyId
+Simulates the GRS/BV journey data retrieval endpoint for all five partnership types. General
+Partnership and Scottish Partnership responses omit `companyProfile` (they aren't Companies House
+registered); Limited Partnership, Scottish Limited Partnership and Limited Liability Partnership
+responses include it.
+
+This can be triggered directly with calls, or by using the create journey endpoint with one of the following retrieval journey IDs as the Auth `credId`.
+
+| Scenario                                | `journeyId` or `credId`                            | Response           | Description                                                                              |
+|------------------------------------------|-----------------------------------------------------|--------------------|-------------------------------------------------------------------------------------------|
+| Success                                  | `grs-retrieval-success`                             | `200 OK`           | Typical success case for General/Scottish Partnership (no `companyProfile`)               |
+| Success (with company profile)           | `grs-retrieval-success-incorporated-partnership`    | `200 OK`           | Typical success case for Limited/Scottish Limited Partnership/LLP (includes `companyProfile`) |
+| Business Verification Fail               | `grs-retrieval-bv-fail`                             | `200 OK`           | Failure in BV journey                                                                      |
+| Registration Failed                      | `grs-retrieval-registration-failed`                 | `200 OK`           | Successful verification but failure to register, including a `failures` array             |
+| Absent UTR                               | `grs-retrieval-absent-utr`                          | `200 OK`           | No SA UTR provided/matched                                                                 |
+| Not Found                                | `grs-retrieval-data-not-found`                      | `404 Not Found`    | No journey data found for the given ID                                                     |
+| Unauthorized (stubbed)                   | `grs-retrieval-unauthorised`                        | `401 Unauthorized` | Explicit stubbed unauthorized response                                                     |
+| Unauthorized (real)                      | auth fails                                          | `401 Unauthorized` | Real authorization failure (e.g. missing or invalid credentials)                          |
+| Success (default)                        | any other value                                     | `200 OK`           | Defaults to typical success response (no `companyProfile`)                                |
 
 ### POST /address-lookup/lookup
 

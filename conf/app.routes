@@ -13,9 +13,19 @@ POST    /email-verification/v2/send-code                            uk.gov.hmrc.
 
 POST    /email-verification/v2/verify-code                          uk.gov.hmrc.disaregistrationstubs.controllers.EmailVerificationController.verifyCode()
 
-## GRS/BV Stubs
+## GRS/BV Stubs - Incorporated Entity Identification
 
-POST    /incorporated-entity-identification/api/limited-company-journey  uk.gov.hmrc.disaregistrationstubs.controllers.GrsController.createLimitedCompanyJourney()
-GET     /incorporated-entity-identification/api/journey/:journeyId       uk.gov.hmrc.disaregistrationstubs.controllers.GrsController.retrieveJourneyData(journeyId: String)
+POST    /incorporated-entity-identification/api/limited-company-journey                          uk.gov.hmrc.disaregistrationstubs.controllers.GrsController.createLimitedCompanyJourney()
+POST    /incorporated-entity-identification/api/registered-society-journey                       uk.gov.hmrc.disaregistrationstubs.controllers.GrsController.createRegisteredSocietyJourney()
+GET     /incorporated-entity-identification/api/journey/:journeyId                               uk.gov.hmrc.disaregistrationstubs.controllers.GrsController.retrieveIncorporatedEntityJourneyData(journeyId: String)
+
+## GRS/BV Stubs - Partnership Identification
+
+POST    /partnership-identification/api/general-partnership-journey                  uk.gov.hmrc.disaregistrationstubs.controllers.GrsController.createGeneralPartnershipJourney()
+POST    /partnership-identification/api/scottish-partnership-journey                 uk.gov.hmrc.disaregistrationstubs.controllers.GrsController.createScottishPartnershipJourney()
+POST    /partnership-identification/api/scottish-limited-partnership-journey         uk.gov.hmrc.disaregistrationstubs.controllers.GrsController.createScottishLimitedPartnershipJourney()
+POST    /partnership-identification/api/limited-partnership-journey                  uk.gov.hmrc.disaregistrationstubs.controllers.GrsController.createLimitedPartnershipJourney()
+POST    /partnership-identification/api/limited-liability-partnership-journey        uk.gov.hmrc.disaregistrationstubs.controllers.GrsController.createLimitedLiabilityPartnershipJourney()
+GET     /partnership-identification/api/journey/:journeyId                           uk.gov.hmrc.disaregistrationstubs.controllers.GrsController.retrievePartnershipJourneyData(journeyId: String)
 
 GET     /tax-enrolments/groups/:groupId/subscriptions                    uk.gov.hmrc.disaregistrationstubs.controllers.TaxEnrolmentController.checkGroupIdSubscription(groupId: String)

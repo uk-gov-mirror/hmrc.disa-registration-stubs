@@ -17,8 +17,8 @@
 package uk.gov.hmrc.disaregistrationstubs.controllers
 
 import play.api.Logging
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.libs.json.{JsArray, JsObject, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, RequestHeader, Result}
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.credentials
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, AuthorisedFunctions}
@@ -40,7 +40,21 @@ class GrsController @Inject() (
     with AuthorisedFunctions
     with Logging {
 
-  def createLimitedCompanyJourney(): Action[GrsCreateJourneyRequest] =
+  def createLimitedCompanyJourney(): Action[GrsCreateJourneyRequest] = createJourney()
+
+  def createRegisteredSocietyJourney(): Action[GrsCreateJourneyRequest] = createJourney()
+
+  def createGeneralPartnershipJourney(): Action[GrsCreateJourneyRequest] = createJourney()
+
+  def createScottishPartnershipJourney(): Action[GrsCreateJourneyRequest] = createJourney()
+
+  def createScottishLimitedPartnershipJourney(): Action[GrsCreateJourneyRequest] = createJourney()
+
+  def createLimitedPartnershipJourney(): Action[GrsCreateJourneyRequest] = createJourney()
+
+  def createLimitedLiabilityPartnershipJourney(): Action[GrsCreateJourneyRequest] = createJourney()
+
+  private def createJourney(): Action[GrsCreateJourneyRequest] =
     Action(parse.json[GrsCreateJourneyRequest]).async { implicit request =>
       authorised()
         .retrieve(credentials) { creds =>
@@ -94,11 +108,9 @@ class GrsController @Inject() (
         }
     }
 
-  def retrieveJourneyData(journeyId: String): Action[AnyContent] = Action.async { implicit request =>
-    authorised() {
-
-      val response = journeyId match {
-
+  def retrieveIncorporatedEntityJourneyData(journeyId: String): Action[AnyContent] = Action.async { implicit request =>
+    authorisedRetrieval(s"retrieving GRS journey data for journeyId: $journeyId") {
+      journeyId match {
         case "grs-retrieval-unauthorised" =>
           logger.info("Returning stubbed unauthorized response for GRS journey data retrieval")
           Unauthorized
@@ -131,8 +143,7 @@ class GrsController @Inject() (
             grsJson(
               identifiersMatch = true,
               bvStatus = Some("FAIL"),
-              registrationStatus = "REGISTRATION_NOT_CALLED",
-              bpId = None
+              registrationStatus = "REGISTRATION_NOT_CALLED"
             )
           )
 
@@ -171,59 +182,169 @@ class GrsController @Inject() (
             )
           )
       }
-
-      Future.successful(response)
-    }.recover { case _: AuthorisationException =>
-      logger.warn(s"Authorisation failed when retrieving GRS journey data for journeyId: $journeyId")
-      Unauthorized
     }
   }
+
+  def retrievePartnershipJourneyData(journeyId: String): Action[AnyContent] = Action.async { implicit request =>
+    authorisedRetrieval(s"retrieving partnership journey data for journeyId: $journeyId") {
+      journeyId match {
+        case "grs-retrieval-unauthorised" =>
+          logger.info("Returning stubbed unauthorized response for partnership journey data retrieval")
+          Unauthorized
+
+        case "grs-retrieval-success" =>
+          logger.info("Returning partnership retrieval success scenario")
+          Ok(
+            partnershipJson(
+              identifiersMatch = true,
+              bvStatus = Some("PASS"),
+              registrationStatus = "REGISTERED",
+              bpId = Some("111111")
+            )
+          )
+
+        case "grs-retrieval-success-incorporated-partnership" =>
+          logger.info("Returning partnership retrieval success scenario including company profile")
+          Ok(
+            partnershipJson(
+              identifiersMatch = true,
+              bvStatus = Some("PASS"),
+              registrationStatus = "REGISTERED",
+              bpId = Some("111111"),
+              includeCompanyProfile = true
+            )
+          )
+
+        case "grs-retrieval-bv-fail" =>
+          logger.info("Returning partnership retrieval business verification fail scenario")
+          Ok(
+            partnershipJson(
+              identifiersMatch = true,
+              bvStatus = Some("FAIL"),
+              registrationStatus = "REGISTRATION_NOT_CALLED"
+            )
+          )
+
+        case "grs-retrieval-registration-failed" =>
+          logger.info("Returning partnership retrieval registration failed scenario")
+          Ok(
+            partnershipJson(
+              identifiersMatch = true,
+              bvStatus = Some("PASS"),
+              registrationStatus = "REGISTRATION_FAILED",
+              failures = Some(
+                Json.arr(
+                  Json.obj(
+                    "code"   -> "INVALID_PAYLOAD",
+                    "reason" -> "Request has not passed validation. Invalid Payload."
+                  ),
+                  Json.obj(
+                    "code"   -> "INVALID_REGIME",
+                    "reason" -> "Request has not passed validation. Invalid Regime."
+                  )
+                )
+              )
+            )
+          )
+
+        case "grs-retrieval-absent-utr" =>
+          logger.info("Returning partnership retrieval absent UTR scenario")
+          Ok(
+            partnershipJson(
+              identifiersMatch = false,
+              bvStatus = Some("UNCHALLENGED"),
+              registrationStatus = "REGISTRATION_NOT_CALLED"
+            )
+          )
+
+        case "grs-retrieval-data-not-found" =>
+          logger.info("Returning partnership retrieval data not found scenario")
+          NotFound
+
+        case _ =>
+          logger.info(s"Returning default partnership retrieval success scenario for journeyId: $journeyId")
+          Ok(
+            partnershipJson(
+              identifiersMatch = true,
+              bvStatus = Some("PASS"),
+              registrationStatus = "REGISTERED",
+              bpId = Some("111111")
+            )
+          )
+      }
+    }
+  }
+
+  private def authorisedRetrieval(
+    logContext: String
+  )(result: => Result)(implicit request: RequestHeader): Future[Result] =
+    authorised() {
+      Future.successful(result)
+    }.recover { case _: AuthorisationException =>
+      logger.warn(s"Authorisation failed when $logContext")
+      Unauthorized
+    }
 
   private def grsJson(
     identifiersMatch: Boolean,
     bvStatus: Option[String],
     registrationStatus: String,
-    bpId: Option[String] = None,
-    includeCtutr: Boolean = true
+    bpId: Option[String] = None
   ): JsObject = {
+    val base = Json.obj(
+      "companyProfile"   -> companyProfileJson,
+      "identifiersMatch" -> identifiersMatch,
+      "registration"     -> registrationJson(registrationStatus, bpId),
+      "ctutr"            -> "1234567890"
+    )
 
-    val base =
-      Json.obj(
-        "companyProfile"   -> companyProfileJson,
-        "identifiersMatch" -> identifiersMatch,
-        "registration"     -> (
-          Json.obj("registrationStatus" -> registrationStatus) ++
-            bpId.map(id => Json.obj("registeredBusinessPartnerId" -> id)).getOrElse(Json.obj())
-        )
-      )
-
-    val withBv =
-      bvStatus
-        .map(status =>
-          base ++ Json.obj(
-            "businessVerification" -> Json.obj(
-              "verificationStatus" -> status
-            )
-          )
-        )
-        .getOrElse(base)
-
-    val withCtutr =
-      if (includeCtutr) withBv ++ Json.obj("ctutr" -> "1234567890")
-      else withBv
-
-    withCtutr
+    withBusinessVerification(base, bvStatus)
   }
 
+  private def partnershipJson(
+    identifiersMatch: Boolean,
+    bvStatus: Option[String],
+    registrationStatus: String,
+    bpId: Option[String] = None,
+    includeCompanyProfile: Boolean = false,
+    failures: Option[JsArray] = None
+  ): JsObject = {
+    val base = Json.obj(
+      "sautr"            -> "1234567890",
+      "postcode"         -> "AA11AA",
+      "identifiersMatch" -> identifiersMatch,
+      "registration"     -> registrationJson(registrationStatus, bpId, failures)
+    )
+
+    val withBv = withBusinessVerification(base, bvStatus)
+
+    if (includeCompanyProfile) withBv ++ Json.obj("companyProfile" -> companyProfileJson)
+    else withBv
+  }
+
+  private def registrationJson(
+    registrationStatus: String,
+    bpId: Option[String] = None,
+    failures: Option[JsArray] = None
+  ): JsObject =
+    Json.obj("registrationStatus" -> registrationStatus) ++
+      bpId.map(id => Json.obj("registeredBusinessPartnerId" -> id)).getOrElse(Json.obj()) ++
+      failures.map(f => Json.obj("failures" -> f)).getOrElse(Json.obj())
+
+  private def withBusinessVerification(json: JsObject, bvStatus: Option[String]): JsObject =
+    bvStatus
+      .map(status => json ++ Json.obj("businessVerification" -> Json.obj("verificationStatus" -> status)))
+      .getOrElse(json)
+
   private val companyProfileJson: JsObject = Json.obj(
-    "companyName"            -> "Widgets Ltd",
+    "companyName"            -> "Test Ltd",
     "companyNumber"          -> "12345678",
     "dateOfIncorporation"    -> "2020-01-01",
     "unsanitisedCHROAddress" -> Json.obj(
-      "address_line_1" -> "1 Street",
+      "address_line_1" -> "1 Test Street",
       "address_line_2" -> "Town",
       "locality"       -> "County",
-      "postal_code"    -> "ZX719AD"
+      "postal_code"    -> "AA11AA"
     )
   )
 
